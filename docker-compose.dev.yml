@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  gus-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4300:4300"
+    environment:
+      - REGON_API_KEY=${REGON_API_KEY}
+      - ACCESS_TOKEN=${ACCESS_TOKEN}
+    volumes:
+      - .:/app
+    command: go run main.go

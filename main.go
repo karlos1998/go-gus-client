@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"github.com/orkanap/regonapi"
 )
 
 func main() {
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Nie udało się wczytać .env")
@@ -22,6 +22,28 @@ func main() {
 	apiKey := os.Getenv("REGON_API_KEY")
 	if apiKey == "" {
 		log.Fatal("Brakuje REGON_API_KEY")
+	}
+
+	accessToken := os.Getenv("ACCESS_TOKEN")
+	if accessToken != "" {
+		app.Use(func(c *fiber.Ctx) error {
+			auth := c.Query("auth")
+
+			if auth == "" {
+				authHeader := c.Get("Authorization")
+				if strings.HasPrefix(authHeader, "Bearer ") {
+					auth = strings.TrimPrefix(authHeader, "Bearer ")
+				}
+			}
+
+			if auth != accessToken {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"error": "Nieprawidłowy klucz autoryzacyjny. Upewnij się czy w parametrzy query podałeś auth taki jak ustawiłeś w .env jako ACCESS_TOKEN. zapytanie powinno wyglądać tak: http://localhost:4300/search/?nip=1234567890&auth=sekretnytoken lub auth możesz podać jako header Authorization: Bearer sekretnytoken Jeśli kontener jest używany tylko lokalnie możesz też pozbyć się tego tokenu.",
+				})
+			}
+
+			return c.Next()
+		})
 	}
 
 	app.Get("/search", func(c *fiber.Ctx) error {
