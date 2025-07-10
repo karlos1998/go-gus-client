@@ -71,5 +71,68 @@ func main() {
 		return c.JSON(fiber.Map{"status": "ok"})
 	})
 
+	app.Get("/legal-pkd-list", func(c *fiber.Ctx) error {
+		regon := c.Query("regon")
+		if regon == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Brak parametru regon"})
+		}
+
+		client := regonapi.NewClient(context.Background(), apiKey)
+
+		if err := client.Login(); err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Błąd logowania"})
+		}
+		defer client.Logout()
+
+		entities, err := client.LegalPersonPKDList(regon)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Błąd wyszukiwania"})
+		}
+
+		return c.JSON(entities)
+	})
+
+	app.Get("/natural-pkd-list", func(c *fiber.Ctx) error {
+		regon := c.Query("regon")
+		if regon == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Brak parametru regon"})
+		}
+
+		client := regonapi.NewClient(context.Background(), apiKey)
+
+		if err := client.Login(); err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Błąd logowania"})
+		}
+		defer client.Logout()
+
+		entities, err := client.NaturalPersonPKDList(regon)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Błąd wyszukiwania"})
+		}
+
+		return c.JSON(entities)
+	})
+
+	app.Get("/details", func(c *fiber.Ctx) error {
+		regon := c.Query("regon")
+		if regon == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Brak parametru regon"})
+		}
+
+		client := regonapi.NewClient(context.Background(), apiKey)
+
+		if err := client.Login(); err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Błąd logowania"})
+		}
+		defer client.Logout()
+
+		entities, err := client.NaturalPersonDetails(regon)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Błąd wyszukiwania"})
+		}
+
+		return c.JSON(entities)
+	})
+
 	log.Fatal(app.Listen(":4300"))
 }
